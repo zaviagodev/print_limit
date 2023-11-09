@@ -2,7 +2,6 @@
   // ../print_limit/print_limit/public/js/frappe/form/toolbar.js
   frappe.ui.form.Toolbar = class CustomToolbar {
     constructor(opts) {
-      console.log("Custom toolbar.js");
       $.extend(this, opts);
       this.refresh();
       this.add_update_button_on_dirty();
@@ -237,6 +236,28 @@
         }, "next-doc", __("Next Document"));
       }
     }
+    async has_print_attempts(doctype, docname) {
+      const printCount = frappe.db.count("Access Log", {
+        filters: {
+          method: "Print",
+          export_from: doctype != null ? doctype : this.frm.doctype,
+          reference_document: docname != null ? docname : this.frm.docname,
+          user: frappe.session.user
+        }
+      }).then((printCount2) => printCount2);
+      const printLimit = frappe.db.exists("Print Limit", doctype != null ? doctype : this.frm.doctype).then((exists) => {
+        if (exists) {
+          return frappe.db.get_value("Print Limit", doctype != null ? doctype : this.frm.doctype, "limit").then(({ message }) => message.limit);
+        }
+        return null;
+      });
+      return Promise.all([printCount, printLimit]).then(([printCount2, printLimit2]) => {
+        if (printLimit2 && printCount2 >= printLimit2) {
+          return false;
+        }
+        return true;
+      });
+    }
     make_menu_items() {
       const me = this;
       const p = this.frm.perm[0];
@@ -247,32 +268,16 @@
       const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
       if (!is_submittable || docstatus == 1 || allow_print_for_cancelled && docstatus == 2 || allow_print_for_draft && docstatus == 0) {
         if (frappe.model.can_print(null, me.frm) && !this.frm.meta.issingle) {
-          console.log("Custom toolbar.js");
-          const printCount = frappe.db.count("Access Log", {
-            filters: {
-              method: "Print",
-              export_from: this.frm.doctype,
-              reference_document: this.frm.docname,
-              user: frappe.session.user
+          this.has_print_attempts(this.frm.doctype, this.frm.docname).then((has_print_attempts) => {
+            if (has_print_attempts && !this.printEnabled) {
+              this.printEnabled = true;
+              this.page.add_menu_item(__("Print"), function() {
+                me.frm.print_doc();
+              }, true);
+              this.print_icon = this.page.add_action_icon("printer", function() {
+                me.frm.print_doc();
+              }, "", __("Print"));
             }
-          }).then((printCount2) => printCount2);
-          const printLimit = frappe.db.exists("Print Limit", this.frm.doctype).then((exists) => {
-            if (exists) {
-              return frappe.db.get_value("Print Limit", this.frm.doctype, "limit").then(({ message }) => message.limit);
-            }
-            return null;
-          });
-          Promise.all([printCount, printLimit]).then(([printCount2, printLimit2]) => {
-            if (printLimit2 && printCount2 >= printLimit2 || this.printEnabled) {
-              return;
-            }
-            this.printEnabled = true;
-            this.page.add_menu_item(__("Print"), function() {
-              me.frm.print_doc();
-            }, true);
-            this.print_icon = this.page.add_action_icon("printer", function() {
-              me.frm.print_doc();
-            }, "", __("Print"));
           });
         }
       }
@@ -534,4 +539,4 @@
     }
   };
 })();
-//# sourceMappingURL=custom-desk.bundle.4UTLAOGS.js.map
+//# sourceMappingURL=custom-desk.bundle.DQQQ273Z.js.map

@@ -3,7 +3,6 @@
 
 frappe.ui.form.Toolbar = class CustomToolbar {
     constructor(opts) {
-        console.log("Custom toolbar.js");
         $.extend(this, opts);
         this.refresh();
         this.add_update_button_on_dirty();
@@ -304,6 +303,31 @@ frappe.ui.form.Toolbar = class CustomToolbar {
         }
     }
 
+    async has_print_attempts(doctype, docname) {
+        const printCount = frappe.db.count("Access Log", {
+            filters: {
+                method: "Print",
+                export_from: doctype ?? this.frm.doctype,
+                reference_document: docname ?? this.frm.docname,
+                user: frappe.session.user,
+            }
+        }).then((printCount) => printCount);
+
+        const printLimit = frappe.db.exists("Print Limit", doctype ?? this.frm.doctype).then((exists) => {
+            if (exists) {
+                return frappe.db.get_value("Print Limit", doctype ?? this.frm.doctype, "limit").then(({ message }) => message.limit);
+            }
+            return null;
+        });
+
+        return Promise.all([printCount, printLimit]).then(([printCount, printLimit]) => {
+            if (printLimit && printCount >= printLimit) {
+                return false;
+            }
+            return true;
+        });
+    }
+
     make_menu_items() {
         // Print
         const me = this;
@@ -322,42 +346,26 @@ frappe.ui.form.Toolbar = class CustomToolbar {
             (allow_print_for_draft && docstatus == 0)
         ) {
             if (frappe.model.can_print(null, me.frm) && !this.frm.meta.issingle) {
-                console.log("Custom toolbar.js");
-                const printCount = frappe.db.count("Access Log", {
-                    filters: {
-                        method: "Print",
-                        export_from: this.frm.doctype,
-                        reference_document: this.frm.docname,
-                        user: frappe.session.user,
-                    }
-                }).then((printCount) => printCount);
+                this.has_print_attempts(this.frm.doctype, this.frm.docname).then((has_print_attempts) => {
+                    if (has_print_attempts && !this.printEnabled) {
+                        this.printEnabled = true;
+                        this.page.add_menu_item(
+                            __("Print"),
+                            function () {
+                                me.frm.print_doc();
+                            },
+                            true
+                        );
+                        this.print_icon = this.page.add_action_icon(
+                            "printer",
+                            function () {
+                                me.frm.print_doc();
+                            },
+                            "",
+                            __("Print")
+                        );
 
-                const printLimit = frappe.db.exists("Print Limit", this.frm.doctype).then((exists) => {
-                    if (exists) {
-                        return frappe.db.get_value("Print Limit", this.frm.doctype, "limit").then(({ message }) => message.limit);
                     }
-                    return null;
-                });
-                Promise.all([printCount, printLimit]).then(([printCount, printLimit]) => {
-                    if ((printLimit && printCount >= printLimit) || this.printEnabled) {
-                        return;
-                    }
-                    this.printEnabled = true;
-                    this.page.add_menu_item(
-                        __("Print"),
-                        function () {
-                            me.frm.print_doc();
-                        },
-                        true
-                    );
-                    this.print_icon = this.page.add_action_icon(
-                        "printer",
-                        function () {
-                            me.frm.print_doc();
-                        },
-                        "",
-                        __("Print")
-                    );
                 });
             }
         }

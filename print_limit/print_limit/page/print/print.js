@@ -1,22 +1,33 @@
 frappe.pages["print"].on_page_load = function (wrapper) {
-	console.log("custom print page loaded");
 	frappe.ui.make_app_page({
 		parent: wrapper,
 	});
 
-	let print_view = new frappe.ui.form.PrintView(wrapper);
+	const route = frappe.get_route();
+	const doctype = route[1];
+	const docname = route.slice(2).join("/");
+
+	let print_view = new frappe.ui.form.PrintView(wrapper, { doctype, docname });
 
 	$(wrapper).bind("show", () => {
-		const route = frappe.get_route();
-		const doctype = route[1];
-		const docname = route.slice(2).join("/");
 		if (!frappe.route_options || !frappe.route_options.frm) {
 			frappe.model.with_doc(doctype, docname, () => {
 				let frm = { doctype: doctype, docname: docname };
-				frm.doc = frappe.get_doc(doctype, docname);
-				frappe.model.with_doctype(doctype, () => {
-					frm.meta = frappe.get_meta(route[1]);
-					print_view.show(frm);
+				print_view.has_print_attempts(doctype, docname).then((has_print_attempts) => {
+					if (!has_print_attempts) {
+						frappe.msgprint({
+							title: __('Notification'),
+							indicator: 'red',
+							message: __("You have reached the maximum number of prints for this document.")
+						});
+						frappe.set_route("Form", doctype, docname);
+						return;
+					}
+					frm.doc = frappe.get_doc(doctype, docname);
+					frappe.model.with_doctype(doctype, () => {
+						frm.meta = frappe.get_meta(route[1]);
+						print_view.show(frm);
+					});
 				});
 			});
 		} else {
@@ -30,9 +41,10 @@ frappe.pages["print"].on_page_load = function (wrapper) {
 };
 
 frappe.ui.form.PrintView = class {
-	constructor(wrapper) {
+	constructor(wrapper, doc) {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
+		this.doc = doc;
 		this.make();
 	}
 
@@ -63,12 +75,19 @@ frappe.ui.form.PrintView = class {
 	}
 
 	setup_toolbar() {
-		this.page.set_primary_action(__("Print"), () => frappe.warn(
-			"Are you sure you want to proceed?",
-			"You won't be able to print this document again.",
-			() => this.printit(),
-			"Proceed"
-		), "printer");
+
+		this.has_print_attempts(this.doc.doctype, this.doc.docname).then((print_attempts) => {
+			if (print_attempts <= 2) {
+				this.page.set_primary_action(__("Print"), () => frappe.warn(
+					"Are you sure you want to proceed?",
+					"You won't be able to print this document again.",
+					() => this.printit(),
+					"Proceed"
+				), "printer");
+			}
+		});
+
+		this.page.set_primary_action(__("Print"), () => this.printit(), "printer");
 
 		this.page.add_button(__("Full Page"), () => this.render_page("/printview?"), {
 			icon: "full-page",
@@ -182,6 +201,34 @@ frappe.ui.form.PrintView = class {
 				this.network_printer_setting_dialog()
 			);
 		}
+	}
+
+	async has_print_attempts(doctype, docname) {
+		const printCount = frappe.db.count("Access Log", {
+			filters: {
+				method: "Print",
+				export_from: doctype ?? this.frm.doctype,
+				reference_document: docname ?? this.frm.docname,
+				user: frappe.session.user,
+			}
+		}).then((printCount) => printCount);
+
+		const printLimit = frappe.db.exists("Print Limit", doctype ?? this.frm.doctype).then((exists) => {
+			if (exists) {
+				return frappe.db.get_value("Print Limit", doctype ?? this.frm.doctype, "limit").then(({ message }) => message.limit);
+			}
+			return null;
+		});
+
+		return Promise.all([printCount, printLimit]).then(([printCount, printLimit]) => {
+			if (printLimit && printCount >= printLimit) {
+				return false;
+			}
+			if (!printLimit) {
+				return true;
+			}
+			return printLimit - printCount;
+		});
 	}
 
 	show(frm) {

@@ -4,7 +4,6 @@ from print_limit.www.printview import validate_print_permission
 
 @frappe.whitelist()
 def get_print_settings_to_show(doctype, docname):
-	print("//////////custom print.py//////////")
 	doc = frappe.get_doc(doctype, docname)
 	validate_print_permission(doc)
 	print_settings = frappe.get_single("Print Settings")
