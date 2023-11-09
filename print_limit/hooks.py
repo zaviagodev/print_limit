@@ -12,7 +12,7 @@ app_license = "MIT"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/print_limit/css/print_limit.css"
-# app_include_js = "/assets/print_limit/js/print_limit.js"
+app_include_js = ["/assets/print_limit/js/frappe/form/toolbar.js"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/print_limit/css/print_limit.css"
@@ -139,9 +139,9 @@ app_license = "MIT"
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-#	"frappe.desk.doctype.event.event.get_events": "print_limit.event.get_events"
-# }
+override_whitelisted_methods = {
+	"frappe.printing.page.print.print.get_print_settings_to_show": "print_limit.print_limit.page.print.print.get_print_settings_to_show"
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
@@ -157,7 +157,7 @@ app_license = "MIT"
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
-# ignore_links_on_delete = ["Communication", "ToDo"]
+ignore_links_on_delete = ["DocType"]
 
 # Request Events
 # ----------------
