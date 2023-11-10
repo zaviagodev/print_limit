@@ -27,6 +27,7 @@ def has_print_attempts(doctype, docname):
 		"doctype": doctype,
 		"docname": docname,
 		"user": frappe.session.user,
+		"exists": frappe.db.exists("Print Limit", doctype),
 	})
 	if printCount >= printLimit:
 		return False
