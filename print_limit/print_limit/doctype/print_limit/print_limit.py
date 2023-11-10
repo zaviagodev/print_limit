@@ -10,7 +10,7 @@ class PrintLimit(Document):
 
 @frappe.whitelist()
 def has_print_attempts(doctype, docname):
-	if not frappe.db.exists("Print Limit", doctype):
+	if frappe.db.exists("Print Limit", doctype) is not True:
 		return True
 	
 	printCount = frappe.db.count("Access Log", {
