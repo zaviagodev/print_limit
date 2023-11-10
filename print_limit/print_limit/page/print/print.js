@@ -77,7 +77,7 @@ frappe.ui.form.PrintView = class {
 	setup_toolbar() {
 
 		this.has_print_attempts(this.doc.doctype, this.doc.docname).then((print_attempts) => {
-			if (print_attempts <= 2) {
+			if (print_attempts !== true && print_attempts <= 2) {
 				this.page.set_primary_action(__("Print"), () => frappe.warn(
 					"Are you sure you want to proceed?",
 					"You won't be able to print this document again.",
