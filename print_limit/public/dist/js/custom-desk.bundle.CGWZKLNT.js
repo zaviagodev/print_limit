@@ -237,26 +237,13 @@
       }
     }
     async has_print_attempts(doctype, docname) {
-      const printCount = frappe.db.count("Access Log", {
-        filters: {
-          method: "Print",
-          export_from: doctype != null ? doctype : this.frm.doctype,
-          reference_document: docname != null ? docname : this.frm.docname,
-          user: frappe.session.user
+      return frappe.call({
+        method: "print_limit.has_print_attempts",
+        args: {
+          doctype,
+          docname
         }
-      }).then((printCount2) => printCount2);
-      const printLimit = frappe.db.exists("Print Limit", doctype != null ? doctype : this.frm.doctype).then((exists) => {
-        if (exists) {
-          return frappe.db.get_value("Print Limit", doctype != null ? doctype : this.frm.doctype, "limit").then(({ message }) => message.limit);
-        }
-        return null;
-      });
-      return Promise.all([printCount, printLimit]).then(([printCount2, printLimit2]) => {
-        if (printLimit2 && printCount2 >= printLimit2) {
-          return false;
-        }
-        return true;
-      });
+      }).then((r) => r.message);
     }
     make_menu_items() {
       const me = this;
@@ -539,4 +526,4 @@
     }
   };
 })();
-//# sourceMappingURL=custom-desk.bundle.DQQQ273Z.js.map
+//# sourceMappingURL=custom-desk.bundle.CGWZKLNT.js.map

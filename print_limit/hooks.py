@@ -140,7 +140,8 @@ app_include_js = ["/assets/print_limit/js/frappe/form/toolbar.js"]
 # ------------------------------
 #
 override_whitelisted_methods = {
-	"frappe.printing.page.print.print.get_print_settings_to_show": "print_limit.print_limit.page.print.print.get_print_settings_to_show"
+	"frappe.printing.page.print.print.get_print_settings_to_show": "print_limit.print_limit.page.print.print.get_print_settings_to_show",
+	"print_limit.has_print_attempts": "print_limit.print_limit.doctype.print_limit.print_limit.has_print_attempts"
 }
 #
 # each overriding function accepts a `data` argument;

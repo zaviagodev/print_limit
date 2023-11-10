@@ -304,28 +304,13 @@ frappe.ui.form.Toolbar = class CustomToolbar {
     }
 
     async has_print_attempts(doctype, docname) {
-        const printCount = frappe.db.count("Access Log", {
-            filters: {
-                method: "Print",
-                export_from: doctype ?? this.frm.doctype,
-                reference_document: docname ?? this.frm.docname,
-                user: frappe.session.user,
-            }
-        }).then((printCount) => printCount);
-
-        const printLimit = frappe.db.exists("Print Limit", doctype ?? this.frm.doctype).then((exists) => {
-            if (exists) {
-                return frappe.db.get_value("Print Limit", doctype ?? this.frm.doctype, "limit").then(({ message }) => message.limit);
-            }
-            return null;
-        });
-
-        return Promise.all([printCount, printLimit]).then(([printCount, printLimit]) => {
-            if (printLimit && printCount >= printLimit) {
-                return false;
-            }
-            return true;
-        });
+        return frappe.call({
+            method: "print_limit.has_print_attempts",
+            args: {
+                doctype: doctype,
+                docname: docname
+            },
+        }).then((r) => r.message);
     }
 
     make_menu_items() {
