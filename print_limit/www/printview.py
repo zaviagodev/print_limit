@@ -332,7 +332,7 @@ def get_rendered_raw_commands(doc, name=None, print_format=None, meta=None, lang
 def validate_print_permission(doc):
 	for ptype in ("read", "print"):
 		if frappe.has_permission(doc.doctype, ptype, doc) or frappe.has_website_permission(doc):
-			if frappe.db.exists("Print Limit", doc.doctype):
+			if frappe.db.exists({"doctype": "Print Limit", "target_doctype": doc.doctype}):
 				print_count = frappe.db.count(
 					"Access Log",
 					{

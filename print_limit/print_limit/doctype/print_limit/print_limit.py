@@ -17,7 +17,7 @@ def has_print_attempts(doctype, docname):
 		"exists": frappe.db.exists({"doctype": "Print Limit", "target_doctype": doctype}),
 		"existsString": f'{frappe.db.exists({"doctype": "Print Limit", "target_doctype": doctype})}',
 	})
-	if frappe.db.exists({"doctype": "Print Limit", "target_doctype": doctype}) is not True:
+	if frappe.db.exists({"doctype": "Print Limit", "target_doctype": doctype}) is None:
 		return True
 	
 	printCount = frappe.db.count("Access Log", {
