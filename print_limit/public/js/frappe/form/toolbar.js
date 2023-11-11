@@ -9,6 +9,7 @@ frappe.ui.form.Toolbar = class CustomToolbar {
         this.setup_editable_title();
     }
     refresh() {
+        this.has_print_attempts(this.frm.doctype, this.frm.docname);
         this.make_menu();
         this.make_viewers();
         this.set_title();
@@ -310,7 +311,9 @@ frappe.ui.form.Toolbar = class CustomToolbar {
                 doctype: doctype,
                 docname: docname
             },
-        }).then((r) => r.message);
+        }).then((r) => {
+            this.print_attempts = r.message;
+        });
     }
 
     make_menu_items() {
@@ -331,27 +334,25 @@ frappe.ui.form.Toolbar = class CustomToolbar {
             (allow_print_for_draft && docstatus == 0)
         ) {
             if (frappe.model.can_print(null, me.frm) && !this.frm.meta.issingle) {
-                this.has_print_attempts(this.frm.doctype, this.frm.docname).then((has_print_attempts) => {
-                    if (has_print_attempts && !this.printEnabled) {
-                        this.printEnabled = true;
-                        this.page.add_menu_item(
-                            __("Print"),
-                            function () {
-                                me.frm.print_doc();
-                            },
-                            true
-                        );
-                        this.print_icon = this.page.add_action_icon(
-                            "printer",
-                            function () {
-                                me.frm.print_doc();
-                            },
-                            "",
-                            __("Print")
-                        );
+                if (this.print_attempts && !this.printEnabled) {
+                    this.printEnabled = true;
+                    this.page.add_menu_item(
+                        __("Print"),
+                        function () {
+                            me.frm.print_doc();
+                        },
+                        true
+                    );
+                    this.print_icon = this.page.add_action_icon(
+                        "printer",
+                        function () {
+                            me.frm.print_doc();
+                        },
+                        "",
+                        __("Print")
+                    );
 
-                    }
-                });
+                }
             }
         }
 

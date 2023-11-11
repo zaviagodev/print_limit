@@ -8,6 +8,7 @@
       this.setup_editable_title();
     }
     refresh() {
+      this.has_print_attempts(this.frm.doctype, this.frm.docname);
       this.make_menu();
       this.make_viewers();
       this.set_title();
@@ -243,7 +244,9 @@
           doctype,
           docname
         }
-      }).then((r) => r.message);
+      }).then((r) => {
+        this.print_attempts = r.message;
+      });
     }
     make_menu_items() {
       const me = this;
@@ -255,17 +258,15 @@
       const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
       if (!is_submittable || docstatus == 1 || allow_print_for_cancelled && docstatus == 2 || allow_print_for_draft && docstatus == 0) {
         if (frappe.model.can_print(null, me.frm) && !this.frm.meta.issingle) {
-          this.has_print_attempts(this.frm.doctype, this.frm.docname).then((has_print_attempts) => {
-            if (has_print_attempts && !this.printEnabled) {
-              this.printEnabled = true;
-              this.page.add_menu_item(__("Print"), function() {
-                me.frm.print_doc();
-              }, true);
-              this.print_icon = this.page.add_action_icon("printer", function() {
-                me.frm.print_doc();
-              }, "", __("Print"));
-            }
-          });
+          if (this.print_attempts && !this.printEnabled) {
+            this.printEnabled = true;
+            this.page.add_menu_item(__("Print"), function() {
+              me.frm.print_doc();
+            }, true);
+            this.print_icon = this.page.add_action_icon("printer", function() {
+              me.frm.print_doc();
+            }, "", __("Print"));
+          }
         }
       }
       if (frappe.model.can_email(null, me.frm) && me.frm.doc.docstatus < 2) {
@@ -526,4 +527,4 @@
     }
   };
 })();
-//# sourceMappingURL=custom-desk.bundle.CGWZKLNT.js.map
+//# sourceMappingURL=custom-desk.bundle.UVIFAMDX.js.map
