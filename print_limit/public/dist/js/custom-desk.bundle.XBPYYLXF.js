@@ -7,8 +7,8 @@
       this.add_update_button_on_dirty();
       this.setup_editable_title();
     }
-    refresh() {
-      this.has_print_attempts(this.frm.doctype, this.frm.docname);
+    async refresh() {
+      await this.has_print_attempts(this.frm.doctype, this.frm.docname);
       this.make_menu();
       this.make_viewers();
       this.set_title();
@@ -527,4 +527,4 @@
     }
   };
 })();
-//# sourceMappingURL=custom-desk.bundle.UVIFAMDX.js.map
+//# sourceMappingURL=custom-desk.bundle.XBPYYLXF.js.map
