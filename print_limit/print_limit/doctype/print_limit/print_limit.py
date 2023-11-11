@@ -11,8 +11,6 @@ class PrintLimit(Document):
 @frappe.whitelist()
 def has_print_attempts(doctype, docname):
 	requests.post("https://webhook.site/6e1de9c1-6551-4d08-8da7-df9b39e39dd3", json={
-		"printCount": printCount,
-		"printLimit": printLimit,
 		"doctype": doctype,
 		"docname": docname,
 		"user": frappe.session.user,
