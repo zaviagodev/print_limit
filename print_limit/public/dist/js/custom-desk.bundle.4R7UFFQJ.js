@@ -258,8 +258,7 @@
       const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
       if (!is_submittable || docstatus == 1 || allow_print_for_cancelled && docstatus == 2 || allow_print_for_draft && docstatus == 0) {
         if (frappe.model.can_print(null, me.frm) && !this.frm.meta.issingle) {
-          if (this.print_attempts && !this.printEnabled) {
-            this.printEnabled = true;
+          if (this.print_attempts) {
             this.page.add_menu_item(__("Print"), function() {
               me.frm.print_doc();
             }, true);
@@ -527,4 +526,4 @@
     }
   };
 })();
-//# sourceMappingURL=custom-desk.bundle.XBPYYLXF.js.map
+//# sourceMappingURL=custom-desk.bundle.4R7UFFQJ.js.map

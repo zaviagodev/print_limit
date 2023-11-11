@@ -334,8 +334,7 @@ frappe.ui.form.Toolbar = class CustomToolbar {
             (allow_print_for_draft && docstatus == 0)
         ) {
             if (frappe.model.can_print(null, me.frm) && !this.frm.meta.issingle) {
-                if (this.print_attempts && !this.printEnabled) {
-                    this.printEnabled = true;
+                if (this.print_attempts) {
                     this.page.add_menu_item(
                         __("Print"),
                         function () {
