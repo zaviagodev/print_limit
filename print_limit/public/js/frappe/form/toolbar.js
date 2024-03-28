@@ -9,7 +9,13 @@ frappe.ui.form.Toolbar = class CustomToolbar {
         this.setup_editable_title();
     }
     async refresh() {
-        await this.has_print_attempts(this.frm.doctype, this.frm.docname);
+        if (!(
+            window.location.pathname.startsWith("/app/data-import")
+            || window.location.pathname.startsWith("/app/data-export")
+            || window.location.pathname.startsWith("/app/customize-form")
+        )) {
+            await this.has_print_attempts(this.frm.doctype, this.frm.docname);
+        }
         this.make_menu();
         this.make_viewers();
         this.set_title();
